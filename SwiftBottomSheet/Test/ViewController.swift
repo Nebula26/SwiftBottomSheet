@@ -14,7 +14,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        bottomSheet = .instantiate(controller: self)
+        bottomSheet = .instantiate(controller: self, withShadow: true, withPanGesture: true)
+        bottomSheet.remainingPanView = 50
         //Instantiate bottomsheet
     }
 

@@ -29,6 +29,12 @@ class BottomSheet: UIView {
         }
     }
     
+    override var isHidden: Bool{
+        didSet{
+            self.overlayView?.isHidden = isHidden
+        }
+    }
+    
     ///Points reamining when view is dragged bottom. Default 100
     var remainingPanView: CGFloat = 100
     
@@ -57,31 +63,36 @@ class BottomSheet: UIView {
         }
     }
     
-
-    override var isHidden: Bool{
-        didSet{
-            self.overlayView?.isHidden = isHidden
-        }
-    }
-    
     /**
      Instantiate bottomsheet view
      - Parameters:
          - controller: The viewcontroller where bottomsheet comes out
          - withShadow: Optional - Add default shadow to the bottomsheet - Default true
+         - withPanGesture: Optional - Add pan gesture  to the bottomsheet - Default false
      - Returns: The bottomsheet view
     */
-    class func instantiate<T: UIView>(controller: UIViewController, withShadow: Bool = true) -> T {
+    class func instantiate<T: UIView>(controller: UIViewController, withShadow shadow: Bool = true, withPanGesture pan: Bool = false) -> T {
         let view =  Bundle(for: T.self).loadNibNamed(String(describing: T.self), owner: nil, options: nil)![0] as! T
         (view as? BottomSheet)?.controller = controller
         (view as? BottomSheet)?.viewDidLoad()
-        (view as? BottomSheet)?.defaultShadow()
+        (view as? BottomSheet)?.isPanEnabled = pan
+
+        if shadow{
+            (view as? BottomSheet)?.defaultShadow()
+        }
+      
         return view
     }
     
     func viewDidLoad(){}
     
-    func show(){
+    /**
+     Show bottomsheet view
+     - Parameters:
+         - withDuration: Optional - animation duration - Default 0.5
+         - delay: Optional - animation delay - Default 0
+    */
+    func show(withDuration duration: TimeInterval = 0.5, delay: TimeInterval = 0){
         //Workaround small device - reset Y
         if let maxY = defaultMaxY{
             frame = CGRect.init(x: 0, y: maxY, width: frame.width, height: frame.height)
@@ -90,8 +101,8 @@ class BottomSheet: UIView {
         }
         
         UIView.animate(
-            withDuration: 0.5,
-            delay: 0,
+            withDuration: duration,
+            delay: delay,
             options: [.curveEaseIn],
             animations: {
                 self.center.y -= self.bounds.height
@@ -100,11 +111,17 @@ class BottomSheet: UIView {
         isHidden = false
      }
 
-    func hide(){
+    /**
+     Hide bottomsheet view
+     - Parameters:
+         - withDuration: Optional - animation duration - Default 0.5
+         - delay: Optional - animation delay - Default 0
+    */
+    func hide(withDuration duration: TimeInterval = 0.5, delay: TimeInterval = 0){
         layoutIfNeeded()
         UIView.animate(
-            withDuration: 0.5,
-            delay: 0,
+            withDuration: duration,
+            delay: delay,
             options: [.curveLinear],
             animations: {
                 self.center.y += self.bounds.height
@@ -114,6 +131,10 @@ class BottomSheet: UIView {
                 self.isHidden = true
             })
     }
+    
+    
+    
+    //MARK: - Private functions
     
     @objc func draggedView(_ sender:UIPanGestureRecognizer){
         //Prevent pan over bottom constraint
@@ -132,7 +153,6 @@ class BottomSheet: UIView {
             }
         }
     }
-    
     
     private func defaultShadow(){
         layer.shadowColor = UIColor.gray.cgColor
